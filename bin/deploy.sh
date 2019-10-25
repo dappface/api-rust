@@ -33,4 +33,4 @@ gcloud beta run deploy "$APP_NAME" \
 	--platform managed \
 	--allow-unauthenticated \
 	--region us-east1 \
-	--update-env-vars APP_ENV="$APP_ENV",SLACK_API_TOKEN="$SLACK_API_TOKEN"
+	--update-env-vars APP_ENV="$APP_ENV",SLACK_API_KEY=berglas://berglas-secrets/slack-api-key
