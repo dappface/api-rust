@@ -23,11 +23,9 @@ APP_NAME=api-rust
 IMAGE_SRC_PATH=gcr.io/"$PROJECT_ID"/"$APP_NAME"
 
 gcloud auth configure-docker
-docker build -t "$IMAGE_SRC_PATH" .
-docker push "$IMAGE_SRC_PATH"
-
-gcloud container images add-tag "$IMAGE_SRC_PATH" \
-    "$IMAGE_SRC_PATH":"$GITHUB_SHA"
+docker build -t "$IMAGE_SRC_PATH":latest -t "$IMAGE_SRC_PARH":"$GITHUB_SHA" .
+docker push "$IMAGE_SRC_PATH":latest
+docker push "$IMAGE_SRC_PATH":"$GITHUB_SHA"
 
 gcloud beta run deploy "$APP_NAME" \
 	--project "$PROJECT_ID" \
