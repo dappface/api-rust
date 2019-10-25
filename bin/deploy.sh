@@ -22,12 +22,10 @@ fi
 APP_NAME=api-rust
 IMAGE_SRC_PATH=gcr.io/"$PROJECT_ID"/"$APP_NAME"
 
-gcloud builds submit \
-	--tag "$IMAGE_SRC_PATH" \
-	--timeout 1200s
-
-gcloud container images add-tag "$IMAGE_SRC_PATH" \
-    "$IMAGE_SRC_PATH":"$GITHUB_SHA"
+gcloud auth configure-docker
+docker build -t "$IMAGE_SRC_PATH":latest -t "$IMAGE_SRC_PATH":"$GITHUB_SHA" .
+docker push "$IMAGE_SRC_PATH":latest
+docker push "$IMAGE_SRC_PATH":"$GITHUB_SHA"
 
 gcloud beta run deploy "$APP_NAME" \
 	--project "$PROJECT_ID" \
@@ -35,4 +33,4 @@ gcloud beta run deploy "$APP_NAME" \
 	--platform managed \
 	--allow-unauthenticated \
 	--region us-east1 \
-	--update-env-vars APP_ENV="$APP_ENV",SLACK_API_TOKEN="$SLACK_API_TOKEN"
+	--set-env-vars "APP_ENV=${APP_ENV},SLACK_API_TOKEN=berglas://${PROJECT_ID}-berglas-secrets/slack-api-token"
