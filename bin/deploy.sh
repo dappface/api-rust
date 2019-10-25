@@ -22,7 +22,7 @@ fi
 APP_NAME=api-rust
 IMAGE_SRC_PATH=gcr.io/"$PROJECT_ID"/"$APP_NAME"
 
-gcloud builds submit \
+gcloud builds submit . \
 	--project "$PROJECT_ID" \
 	--tag "$IMAGE_SRC_PATH" \
 	--timeout 1200s
