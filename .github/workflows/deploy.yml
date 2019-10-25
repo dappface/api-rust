@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v1
       - name: Authenticate to Google Cloud
         run: |
-          echo "$GOOGLE_CLOUD_KEY" | base64 --decode > "$HOME"/google-cloud-key.json
+          echo ${{ secrets.GOOGLE_CLOUD_KEY }} | base64 --decode > "$HOME"/google-cloud-key.json
           gcloud auth activate-service-account --key-file="$HOME"/google-cloud-key.json
       - name: Deploy to Cloud Run
         run: bin/deploy.sh
