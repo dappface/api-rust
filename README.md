@@ -2,6 +2,12 @@
   <img src="https://github.com/dappface/www.dappface.com/raw/master/static/icon-128x128.png" alt="DAPPFACE Logo" />
 
   <h1>DAPPFACE Rust API</h1>
+
+  <p>
+    <a href="https://github.com/dappface/api-rust/actions?workflow=Deploy">
+      <img src="https://github.com/dappface/api-rust/workflows/Deploy/badge.svg" />
+    </a>
+  </p>
 </div>
 
 ## Start Locally
