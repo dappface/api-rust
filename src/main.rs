@@ -15,7 +15,7 @@ type Result<T> = std::result::Result<T, GenericError>;
 static NOTFOUND: &[u8] = b"Not Found";
 
 fn validate_params(
-    params: HashMap<String, String>,
+    params: &HashMap<String, String>,
 ) -> std::result::Result<(String, String, String), String> {
     match (
         params.get("name"),
@@ -61,7 +61,7 @@ async fn handle_contact_post<'a>(req: Request<Body>, slack: Slack<'a>) -> Result
         .collect::<HashMap<String, String>>();
 
     // validate (name, email, message)
-    let (name, email, message) = match validate_params(params) {
+    let (name, email, message) = match validate_params(&params) {
         Ok(parsed_params) => parsed_params,
         Err(err) => {
             return Ok(Response::builder()
@@ -108,7 +108,18 @@ async fn handle_contact_post<'a>(req: Request<Body>, slack: Slack<'a>) -> Result
     println!("{:#?}", res);
 
     // return ok
-    Ok(Response::new(Body::from("success")))
+    let res = match params.get("to") {
+        Some(to) => Response::builder()
+            .status(302)
+            .header("Location", to)
+            .body(Body::from(""))
+            .unwrap(),
+        None => Response::builder()
+            .status(200)
+            .body(Body::from("success"))
+            .unwrap(),
+    };
+    Ok(res)
 }
 
 async fn router<'a>(req: Request<Body>, slack: Slack<'a>) -> Result<Response<Body>> {
