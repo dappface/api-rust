@@ -1,3 +1,7 @@
-target/
-.gitignore
 .git
+.github
+.gitignore
+bin
+Dockerfile
+target/
+README.md

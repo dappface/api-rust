@@ -14,15 +14,10 @@ type Result<T> = std::result::Result<T, GenericError>;
 
 static NOTFOUND: &[u8] = b"Not Found";
 
-async fn handle_contact_post<'a>(req: Request<Body>, slack: Slack<'a>) -> Result<Response<Body>> {
-    // parse body
-    let b = req.into_body().try_concat().await?;
-    let params = form_urlencoded::parse(&b)
-        .into_owned()
-        .collect::<HashMap<String, String>>();
-
-    // validate (name, email, message)
-    let (name, email, message) = match (
+fn validate_params(
+    params: HashMap<String, String>,
+) -> std::result::Result<(String, String, String), String> {
+    match (
         params.get("name"),
         params.get("email"),
         params.get("message"),
@@ -39,27 +34,39 @@ async fn handle_contact_post<'a>(req: Request<Body>, slack: Slack<'a>) -> Result
                         email_user_re.is_match(parts[0]),
                         email_domain_re.is_match(parts[1]),
                     ) {
-                        (true, true) => (name, email, message),
+                        (true, true) => {
+                            return Ok((name.to_string(), email.to_string(), message.to_string()));
+                        }
                         _ => {
-                            return Ok(Response::builder()
-                                .status(StatusCode::UNPROCESSABLE_ENTITY)
-                                .body(Body::from("Invalid email address"))
-                                .unwrap());
+                            return Err("Invalid email address".to_string());
                         }
                     }
                 }
                 _ => {
-                    return Ok(Response::builder()
-                        .status(StatusCode::UNPROCESSABLE_ENTITY)
-                        .body(Body::from("Empty field"))
-                        .unwrap());
+                    return Err("Empty field".to_string());
                 }
             }
         }
         _ => {
+            return Err("Missing field".to_string());
+        }
+    };
+}
+
+async fn handle_contact_post<'a>(req: Request<Body>, slack: Slack<'a>) -> Result<Response<Body>> {
+    // parse body
+    let b = req.into_body().try_concat().await?;
+    let params = form_urlencoded::parse(&b)
+        .into_owned()
+        .collect::<HashMap<String, String>>();
+
+    // validate (name, email, message)
+    let (name, email, message) = match validate_params(params) {
+        Ok(parsed_params) => parsed_params,
+        Err(err) => {
             return Ok(Response::builder()
                 .status(StatusCode::UNPROCESSABLE_ENTITY)
-                .body(Body::from("Missing field"))
+                .body(Body::from(err))
                 .unwrap());
         }
     };
@@ -75,7 +82,7 @@ async fn handle_contact_post<'a>(req: Request<Body>, slack: Slack<'a>) -> Result
         .text(&notification_text)
         .blocks(vec![
             SectionBuilder::new(title)
-                .fields(vec!["*Name*", "*Email*", name, email])
+                .fields(vec!["*Name*", "*Email*", &name, &email])
                 .build()
                 .unwrap()
                 .into(),
