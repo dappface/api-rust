@@ -97,10 +97,10 @@ async fn handle_contact_post<'a>(req: Request<Body>, slack: Slack<'a>) -> Result
         .await
     {
         Ok(res) => res,
-        Err(_) => {
+        Err(err) => {
             return Ok(Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(Body::from("Failed to send contact"))
+                .body(Body::from(format!("Failed to send contact: {}", err)))
                 .unwrap());
         }
     };
@@ -108,14 +108,14 @@ async fn handle_contact_post<'a>(req: Request<Body>, slack: Slack<'a>) -> Result
     println!("{:#?}", res);
 
     // return ok
-    let res = match params.get("to") {
-        Some(to) => Response::builder()
-            .status(302)
-            .header("Location", to)
+    let res = match params.get("_next") {
+        Some(next) => Response::builder()
+            .status(StatusCode::FOUND)
+            .header("Location", next)
             .body(Body::from(""))
             .unwrap(),
         None => Response::builder()
-            .status(200)
+            .status(StatusCode::OK)
             .body(Body::from("success"))
             .unwrap(),
     };
